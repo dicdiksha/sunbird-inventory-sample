@@ -1,0 +1,96 @@
+# ------------------------------------------------------------------------------------------------------------ #
+# Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
+# docker hub details
+cloud_service_provider: "oci"       # Your cloud service provider name. Supported values are aws, azure, gcloud
+dockerhub: "YOUR-OCIR-ENDPOINT-INCLUDE-NAMESPACE-N-PROJECTPREFIX"                 # docker hub username or url incase of private registry
+private_ingressgateway_ip: "YOUR-PRIVATE-LB-IP" # your private kubernetes load balancer ip
+domain_name: ""               # your domain name like example.com
+# Note - You can use the same azure account for the below variables or have separate azure accounts
+sunbird_public_storage_account_name: "change.azure.storage.account.name"             # Azure account name for storing public data (like contents)
+sunbird_private_storage_account_name: "change.azure.storage.account.name"            # Azure account name for storing private data (like reports, telemetry data)
+sunbird_artifact_storage_account_name: "change.azure.storage.account.name"           # Azure account name for storing artifacts data (like jenkins build zip files)
+sunbird_management_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing backup data (like cassandra backups)
+
+# Optional
+
+env: dev                  # some name like dev, preprod etc
+proto: https               # http or https, preferably https
+
+azure_public_container: YOUR-OCI-STORAGE-BUCKET-FOR-PUBLIC-DATA                         # Azure container name for storing public data (like contents)
+
+environment_id: "10000003"                                   # A 8 digit number for example like 1000000,
+                                                  # Important: same as the one in core/common.yaml
+neo4j_zip: neo4j-community-3.3.9-unix.tar.gz      # Neo4j file name present in the azure blob artifacts folder (only neo4j 3.4 and below is supported)
+neo4j_home: "{{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"   # update the version number here of the neo4j
+neo4j_enterprise: false                           # Set this to true if you use the enterprise version
+
+
+# ------------------------------------------------------------------------------------------------------------ #
+# Sensible defaults which you need not change - But if you would like to change, you are free to do so
+ekstep_domain_name: "{{ proto }}://{{ domain_name }}"
+artifacts_container: YOUR-OCI-STORAGE-BUCKET-FOR-ARTIFACTS
+
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
+# AWS
+# cloud_storage_url: # Geetha to fill this url based on AWS role vars
+# Azure
+#cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+
+# OCI - ( EXPERIMENTAL)
+cloud_storage_url: "https://objectstorage.{{oci_region}}.oraclecloud.com/n/{{oci_namespace}}/b/{{oci_content_oss_bucket_name}}"
+
+# Define the below if you are using OCI Cloud ( EXPERIMENTAL )
+oci_region: "ap-hyderabad-1"
+oci_namespace: "OCI-STORAGE-NAMESPACE"
+oci_management_oss_bucket_name: "OCI-STORAGE-BUCKET-NAME-FOR-MANAGEMENT-OSS"
+oci_artifact_oss_bucket_name: "OCI-STORAGE-BUCKET-NAME-FOR-ARTIFACT-OSS"
+oci_public_oss_bucket_name: "OCI-STORAGE-BUCKET-NAME-FOR-PUBLIC-OSS"
+oci_private_oss_bucket_name: "OCI-STORAGE-BUCKET-NAME-FOR-PRIVATE-OSS"
+oci_content_oss_bucket_name: "OCI-STORAGE-BUCKET-NAME-FOR-CONTENTS-OSS"
+
+
+### OCI Experimental
+### This is added to test s3 compliant api works for Deploy/Kubernetes/Assessment
+cloud_public_storage_accountname: "YOUR-OCI-S3-COMPLIANT-KEY-ID" ### oci customer key id for s3 compliant api
+cloud_public_storage_endpoint: "{{oci_namespace}}.compat.objectstorage.{{oci_region}}.oraclecloud.com"
+cloud_storage_content_bucketname: "{{oci_content_oss_bucket_name}}"
+
+
+# SB-31155 - This should be deprecated in future in favour of plugin_storage
+plugin_container_name: "{{ oci_content_oss_bucket_name }}"
+
+kp_schema_base_path: "https://{{ cloud_public_storage_endpoint }}/{{ plugin_container_name }}/schemas/local"
+imagepullsecrets: "{{env}}registrysecret"                 # kubernetes imagePullSecrets
+kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml        # kubeconfig file path on jenkins
+
+# Define the below if you are using Google Cloud
+gcloud_private_bucket_name: ""
+gcloud_public_bucket_name: ""
+gcloud_artifact_bucket_name: ""
+gcloud_management_bucket_name: ""
+
+gcloud_private_bucket_projectId: ""
+
+
+### Temporarily Disabled service monitoring
+service_monitor_enabled: false
+
+
+### For OCI FlinkJobs
+oci_home_region: "YOUR-OCI-HOME-REGION"
+s3_region: "{{oci_home_region}}"
+oci_flink_s3_storage_endpoint: "{{oci_namespace}}.compat.objectstorage.{{s3_region}}.oraclecloud.com"
+cloudstorage_sdk_endpoint: "https://{{oci_namespace}}.compat.objectstorage.{{oci_region}}.oraclecloud.com"
+
+
+# oci_flink_storage_type: "oci"  ## Not required
+jobmanager_ui_service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/oci-load-balancer-internal: "true"
+    service.beta.kubernetes.io/oci-load-balancer-subnet1: "YOUR-PRIVATE-LB-SUBNET-OCID"
+
+flink_jobs_console_log_level: "TRACE"
+flink_libraries_log_level: "TRACE"

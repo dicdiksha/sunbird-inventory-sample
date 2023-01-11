@@ -1,0 +1,220 @@
+# ------------------------------------------------------------------------------------------------------------ #
+# Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
+cloud_service_provider: "oci"       # Your cloud service provider name. Supported values are aws, azure, gcloud
+domain_name: "YOUR-ED-PORTAL-FQDN"          # your domain name like example.com
+# docker hub details
+dockerhub: "hyd.ocir.io/YOUR-NAME-SPACE/YOUR-PROJECT-PREFIX"                                      # docker hub username or url incase of private registry
+private_ingressgateway_ip: "YOUR-PRIVATE-LB-IP"                        # your private kubernetes load balancer ip
+# Note - You can use the same azure account for the below variables or have separate azure accounts
+sunbird_private_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing private data (like reports, telemetry data)
+sunbird_public_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing public data (like contents)
+sunbird_druid_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing druid data (like query results)
+sunbird_artifact_storage_account_name: "change.azure.storage.account.name"       # Azure account name for storing artifacts data (like jenkins build zip files)
+sunbird_management_storage_account_name: "change.azure.storage.account.name"     # Azure account name for storing backup data (like cassandra backups)
+
+
+
+
+# ------------------------------------------------------------------------------------------------------------ #
+# Optional variables - Can be left blank if you dont plan to use the intended features
+env: dev                  # some name like dev, preprod etc
+proto: https               # http or https, preferably https
+
+# Azure media streaming service
+stream_base_url: "" # Media service streaming url
+media_service_azure_tenant: "" # value have to be defined
+media_service_azure_subscription_id: ""
+media_service_azure_account_name: ""
+media_service_azure_resource_group_name: ""
+media_service_azure_token_client_key: ""
+media_service_azure_token_client_secret: ""
+
+# data exhaust alerts
+data_exhaust_webhook_url: "slack.com"     # Slack webhook url
+data_exhaust_Channel: "slack.com"         # Slack channel for data products alerts
+secor_alerts_slack_channel: "slack.com"   # Slack channel name for secor alerts - Example #all_alerts_channel
+
+# ------------------------------------------------------------------------------------------------------------ #
+# Sensible defaults which you need not change - But if you would like to change, you are free to do so
+data_exhaust_name: "datapipeline-monitoring"  # Slack notification name
+postgres:
+  db_url: "{{ groups['postgres'][0] }}"
+  db_username: analytics
+  db_name: analytics
+  db_password: "{{dp_vault_pgdb_password}}"
+  db_table_name: "{{env}}_consumer_channel_mapping"
+  db_port: 5432
+  db_admin_user: postgres
+  db_admin_password: "{{dp_vault_pgdb_admin_password}}"
+
+druid_postgres_user: druid # Do not change this
+sunbird_private_azure_report_container_name: 'sunbird-prod-dikshaprodprivate-reports-510'
+sunbird_public_azure_report_container_name: 'sunbird-prod-ntpproductionall-public-reports-510'
+cloud_storage_artifacts_bucketname: "sunbird-prod-dikshaartifact-artifacts-510"
+imagepullsecrets: "{{env}}registrysecret"                  # kubernetes imagePullSecrets
+kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml         # kubeconfig file path on jenkins
+core_kubeconfig_path: "{{ kubeconfig_path }}"              # kubeconfig file path on jenkins for core kube cluster, change this if you use separate kube cluster for core and KP + DP
+
+# The below sets the kafka topics retention time to 1 day, if you use the defaults from the public repo, it will be 7 days
+# If you want to retain the topics for 7 days, remove the below sections completely
+# Ensure you have atleast 1 TB of disk to retain data for 7 days
+ingestion_kafka_topics:
+  - name: telemetry.ingestion
+    num_of_partitions: 2
+    replication_factor: 1
+  - name: events.deviceprofile
+    num_of_partitions: 2
+    replication_factor: 1
+  - name: telemetry.ingest
+    num_of_partitions: 2
+    replication_factor: 1
+
+ingestion_kafka_overriden_topics:
+  - name: telemetry.ingestion
+    retention_time: 86400000
+    replication_factor: 1
+    max_message_bytes: 5242880
+  - name: events.deviceprofile
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.ingest
+    retention_time: 86400000
+    replication_factor: 1
+    max_message_bytes: 5242880
+
+processing_kafka_overriden_topics:
+  - name: analytics.job_queue
+    retention_time: 86400000
+    replication_factor: 1
+  - name: analytics_metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: druid.events.error
+    retention_time: 86400000
+    replication_factor: 1
+  - name: druid.events.log
+    retention_time: 86400000
+    replication_factor: 1
+  - name: druid.events.summary
+    retention_time: 86400000
+    replication_factor: 1
+  - name: druid.events.telemetry
+    retention_time: 86400000
+    replication_factor: 1
+  - name: events.deviceprofile
+    retention_time: 86400000
+    replication_factor: 1
+  - name: prom.monitoring.metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.raw
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.audit
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.denorm
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.derived
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.derived.unique
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.duplicate
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.error
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.extractor.duplicate
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.extractor.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.ingest
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.raw
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique.latest
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique.primary
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique.secondary
+    retention_time: 86400000
+    replication_factor: 1
+  - name: ml.observation.raw
+    retention_time: 86400000
+    replication_factor: 1
+  - name: ml.observation.druid
+    retention_time: 86400000
+    replication_factor: 1
+
+# Define the below if you are using Google Cloud
+gcloud_private_bucket_name: ""
+gcloud_public_bucket_name: ""
+gcloud_artifact_bucket_name: ""
+gcloud_management_bucket_name: ""
+
+gcloud_private_bucket_projectId: ""
+
+
+#OCI OSS values
+oci_region: "YOUR-OCI-REGION"
+oci_home_region: "YOUR-OCI-HOME-REGION"
+oci_namespace: "YOUR-OCI-STORAGE-NAMESPACE"
+oci_bucket_compartment: "YOUR-STORAGE-BUCKET-COMPARTMENT-OCID"
+
+## Some additional values that may be required for Druid configuration.
+## Putting it here for reference. Will have to trim down further.
+druid_storage_type: "s3"   ## Currently supported values azure or s3
+druid_extensions_list : '"druid-s3-extensions","graphite-emitter", "postgresql-metadata-storage", "druid-kafka-indexing-service", "druid-datasketches"'
+druid_indexing_logs_type: "s3"   ## Currently supported values azure or s3
+s3_region: "{{oci_home_region}}"
+s3_storage_container: YOUR-STORAGE-BUCKET-NAME-FOR-DP
+s3_storage_endpoint: "{{oci_namespace}}.compat.objectstorage.{{oci_region}}.oraclecloud.com"
+## Only for flink jobs as flink-s3 only works in home region for oci ## https://github.com/oracle/oci-hdfs-connector/issues/27
+oci_flink_s3_storage_endpoint: "{{oci_namespace}}.compat.objectstorage.{{s3_region}}.oraclecloud.com"
+s3_path_style_access: "true"
+
+dp_object_store_type: s3   ### For OCI we will have to try with s3
+uci_env: "dev"  ## experimental value
+sunbird_instance: "dummy_value" ## experimental value
+
+
+### Temporarily Disabled service monitoring
+service_monitor_enabled: false
+
+
+### For OCI FlinkJobs
+checkpoint_store_type: "s3"
+jobmanager_ui_service:
+  type: LoadBalancer
+  annotations:
+    service.beta.kubernetes.io/oci-load-balancer-internal: "true"
+    service.beta.kubernetes.io/oci-load-balancer-subnet1: "YOUR-DP-PRIVATE-LB-IP"
+
+# flink_jobs_console_log_level: "TRACE"
+# flink_libraries_log_level: "TRACE"
+# flink_hadoop_log_level: "TRACE"
